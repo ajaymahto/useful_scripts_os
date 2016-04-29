@@ -1,0 +1,71 @@
+#! /usr/bin/env python
+
+import os
+import sys
+import json
+import time
+import argparse
+import re
+from oslo_utils import uuidutils
+from subprocess import Popen, PIPE, check_output
+from distutils.spawn import find_executable
+
+
+def parse_list_output(output):
+    """Parse the output of list commands (like `openstack project list`)."""
+    lines = output.splitlines()
+    keys = filter(None, lines[1].split('|'))
+    keys = [x.lower().strip() for x in keys]
+    r = []
+    for line in lines[3:-1]:
+        if len(line.split()) <= 1:
+            continue
+        values = filter(None, line.split('|'))
+        values = [x.strip() for x in values]
+        assert len(keys) == len(values)
+        record = dict(zip(keys, values))
+        r.append(record)
+    return r
+
+
+def parse_output(output):
+    """
+    Parse the output of commands (like `nova boot`) that print in tabular form.
+    """
+    lines = output.splitlines()[3:-1]
+    r = {}
+    for line in lines:
+        kv = filter(None, line.split('|'))
+        kv = [x.strip() for x in kv]
+        r.update({kv[0]: kv[1]})
+    return r
+
+
+def get(list_of_dict, key, value):
+    """
+    Returns the dictionary in a list of dictionaries that has the value of
+    'key' as 'value'.
+    """
+    return filter(lambda dictionary: dictionary[key] == value, list_of_dict)
+
+def main():
+
+    command="neutron net-list".split()
+    output=check_output(command) 
+    list_of_networks=parse_list_output(output)
+    
+    for network in list_of_networks:
+
+	network_name=network['name'].split("_", 3)[1]
+	network_id=network['subnets'].split()[1]
+	#sample_entry: domain=brandstore.dev.ggn1.ops.snapdeal.io,10.41.129.0/24
+	entry="domain=%s.ggn1.ops.snapdeal.io,%s\n" % (network_name, network_id)
+	
+	if ".stg" in network_name:	
+		with open("/etc/neutron/dnsmasq-neutron.conf", "a") as myfile:
+			myfile.write(entry)
+    
+    return 0
+
+if __name__ == "__main__":
+	sys.exit(main())
