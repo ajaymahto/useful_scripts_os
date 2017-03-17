@@ -49,7 +49,7 @@ def get_date_dict_from_index(index):
 
 def main():
 	if len(sys.argv) < 4:
-		print "Usage: %s <EFK_HOST_IP> <EFK_PORT> <RETENTION_IN_DAYS>"
+		print "Usage: %s <EFK_HOST_IP> <EFK_PORT> <RETENTION_IN_DAYS>" % sys.argv[0]
 		return
 	
 	efk_host_ip = sys.argv[1]
