@@ -58,8 +58,8 @@ def main():
 
 	network_name=network['name'].split("_", 3)[1]
 	network_id=network['subnets'].split()[1]
-	#sample_entry: domain=brandstore.dev.ggn1.ops.snapdeal.io,10.41.129.0/24
-	entry="domain=%s.ggn1.ops.snapdeal.io,%s\n" % (network_name, network_id)
+	#sample_entry: domain=<domain>
+	entry="domain=%s.<domain>,%s\n" % (network_name, network_id)
 	
 	if ".stg" in network_name:	
 		with open("/etc/neutron/dnsmasq-neutron.conf", "a") as myfile:
